@@ -9,7 +9,7 @@ import (
 func main() {
 	fmt.Println("oh hai")
 	v := bson.M{"test": bson.NewObjectId()}
-	bytes, err := mejson.MarshalMEJSON(v)
+	bytes, err := mejson.Marshal(v)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return

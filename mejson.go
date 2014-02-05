@@ -6,16 +6,16 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func MarshalMEJSON(in interface{}) ([]byte, error) {
+func Marshal(in interface{}) ([]byte, error) {
 	switch v := in.(type) {
 	case bson.M:
-		return MarshalMapJSON(v)
+		return MarshalMap(v)
 	case bson.D:
 		return nil, fmt.Errorf("you gave me bson.D")
 	case string:
 		return json.Marshal(v)
 	case bson.ObjectId:
-		return MarshalObjectIdMEJSON(v)
+		return MarshalObjectId(v)
 	default:
 		fmt.Printf("type %T\n", v)
 		fmt.Printf("stuff: %+v\n", v)
@@ -24,16 +24,16 @@ func MarshalMEJSON(in interface{}) ([]byte, error) {
 	return nil, nil
 }
 
-func MarshalObjectIdMEJSON(in bson.ObjectId) ([]byte, error) {
+func MarshalObjectId(in bson.ObjectId) ([]byte, error) {
 	result := map[string]string{}
 	result["$oid"] = in.Hex()
 	return json.Marshal(result)
 }
 
-func MarshalMapJSON(in bson.M) ([]byte, error) {
+func MarshalMap(in bson.M) ([]byte, error) {
 	result := map[string]*json.RawMessage{}
 	for key, value := range in {
-		bytes, err := MarshalMEJSON(value)
+		bytes, err := Marshal(value)
 		if err != nil {
 			return nil, err
 		}
