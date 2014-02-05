@@ -11,17 +11,14 @@ func Marshal(in interface{}) ([]byte, error) {
 	case bson.M:
 		return MarshalMap(v)
 	case bson.D:
-		return nil, fmt.Errorf("you gave me bson.D")
+		return nil, fmt.Errorf("unhandled input type bson.D")
 	case string:
 		return json.Marshal(v)
 	case bson.ObjectId:
 		return MarshalObjectId(v)
 	default:
-		fmt.Printf("type %T\n", v)
-		fmt.Printf("stuff: %+v\n", v)
 		return json.Marshal(v)
 	}
-	return nil, nil
 }
 
 func MarshalObjectId(in bson.ObjectId) ([]byte, error) {
