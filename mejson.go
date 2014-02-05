@@ -25,9 +25,7 @@ func Marshal(in interface{}) ([]byte, error) {
 }
 
 func MarshalObjectId(in bson.ObjectId) ([]byte, error) {
-	result := map[string]string{}
-	result["$oid"] = in.Hex()
-	return json.Marshal(result)
+	return json.Marshal(map[string]string{"$oid": in.Hex()})
 }
 
 func MarshalMap(in bson.M) ([]byte, error) {
