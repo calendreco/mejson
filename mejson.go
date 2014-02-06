@@ -1,6 +1,7 @@
 package mejson
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"labix.org/v2/mgo/bson"
@@ -12,6 +13,8 @@ func Marshal(in interface{}) ([]byte, error) {
 		return MarshalMap(v)
 	case bson.D:
 		return nil, fmt.Errorf("unhandled input type bson.D")
+	case bson.Binary:
+		return MarshalBinary(v)
 	case string:
 		return json.Marshal(v)
 	case bson.ObjectId:
@@ -35,6 +38,14 @@ func MarshalMap(in bson.M) ([]byte, error) {
 		message := &json.RawMessage{}
 		message.UnmarshalJSON(bytes)
 		result[key] = message
+	}
+	return json.Marshal(result)
+}
+
+func MarshalBinary(in bson.Binary) ([]byte, error) {
+	result := map[string]string{
+		"$type":   fmt.Sprintf("%x", in.Kind),
+		"$binary": base64.StdEncoding.EncodeToString(in.Data),
 	}
 	return json.Marshal(result)
 }
