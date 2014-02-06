@@ -12,7 +12,8 @@ func Marshal(in interface{}) ([]byte, error) {
 	case bson.M:
 		return MarshalMap(v)
 	case bson.D:
-		return nil, fmt.Errorf("unhandled input type bson.D")
+		// todo write marshaller for doc to ensure serialization order
+		return MarshalMap(v.Map())
 	case bson.Binary:
 		return MarshalBinary(v)
 	case string:
