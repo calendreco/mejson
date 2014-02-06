@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"labix.org/v2/mgo/bson"
+	"time"
 )
 
 func Marshal(in interface{}) ([]byte, error) {
@@ -16,6 +17,8 @@ func Marshal(in interface{}) ([]byte, error) {
 		return MarshalMap(v.Map())
 	case bson.Binary:
 		return MarshalBinary(v)
+	case time.Time:
+		return nil, fmt.Errorf("unimplemented type time.Time")
 	case string:
 		return json.Marshal(v)
 	case bson.ObjectId:
