@@ -10,6 +10,8 @@ import (
 
 func Marshal(in interface{}) ([]byte, error) {
 	switch v := in.(type) {
+	case []bson.M:
+		return MarshalMaps(v)
 	case bson.M:
 		return MarshalMap(v)
 	case bson.D:
@@ -17,19 +19,34 @@ func Marshal(in interface{}) ([]byte, error) {
 		return MarshalMap(v.Map())
 	case bson.Binary:
 		return MarshalBinary(v)
+	case bson.ObjectId:
+		return MarshalObjectId(v)
 	case time.Time:
 		return nil, fmt.Errorf("unimplemented type time.Time")
 	case string:
 		return json.Marshal(v)
-	case bson.ObjectId:
-		return MarshalObjectId(v)
 	default:
+		fmt.Printf("unknown type: %T\n", v)
 		return json.Marshal(v)
 	}
 }
 
 func MarshalObjectId(in bson.ObjectId) ([]byte, error) {
 	return json.Marshal(map[string]string{"$oid": in.Hex()})
+}
+
+func MarshalMaps(in []bson.M) ([]byte, error) {
+	result := []*json.RawMessage{}
+	for _, value := range in {
+		bytes, err := Marshal(value)
+		if err != nil {
+			return nil, err
+		}
+		message := &json.RawMessage{}
+		message.UnmarshalJSON(bytes)
+		result = append(result, message)
+	}
+	return json.Marshal(result)
 }
 
 func MarshalMap(in bson.M) ([]byte, error) {
