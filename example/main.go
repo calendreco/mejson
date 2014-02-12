@@ -7,7 +7,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func main() {
+func marsh() {
 	session, err := mgo.Dial("localhost")
 	if err != nil {
 		panic(err)
@@ -25,4 +25,21 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("%s\n", bytes)
+}
+
+func unmarsh() {
+	bytes, err := mejson.Marshal(bson.M{"id": bson.M{"$oid": "12341234123412"}})
+	if err != nil {
+		panic(err)
+	}
+	result := bson.M{}
+	err = mejson.Unmarshal(bytes, &result)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", result)
+}
+
+func main() {
+	unmarsh()
 }
