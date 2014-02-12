@@ -31,7 +31,6 @@ func Date(in interface{}) (date time.Time, ok bool) {
 	case map[string]interface{}:
 		value, contains := v["$date"]
 		milli, isint := value.(int)
-		fmt.Printf("contains: %b\nisint: %b\nmilli: %d\n", contains, isint, milli)
 		if isint && contains && len(v) == 1 {
 			ok = true
 			date = time.Unix(0, int64(milli)*int64(time.Millisecond))
