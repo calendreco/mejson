@@ -37,6 +37,9 @@ func bsonify() {
 				"$oid": "123412341234123412341234",
 			},
 		},
+		"time": map[string]interface{}{
+			"$date": 1392227630711,
+		},
 	}
 	m, err := mejson.Bsonify(in)
 	if err != nil {
