@@ -27,19 +27,19 @@ func marsh() {
 	fmt.Printf("%s\n", bytes)
 }
 
-func unmarsh() {
-	bytes, err := mejson.Marshal(bson.M{"id": bson.M{"$oid": "12341234123412"}})
+func bsonify() {
+	in := map[string]interface{}{
+		"_id": map[string]interface{}{
+			"$oid": "1234",
+		},
+	}
+	m, err := mejson.Bsonify(in)
 	if err != nil {
 		panic(err)
 	}
-	result := bson.M{}
-	err = mejson.Unmarshal(bytes, &result)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("%+v\n", result)
+	fmt.Printf("bson: %+v\n", m)
 }
 
 func main() {
-	unmarsh()
+	bsonify()
 }
