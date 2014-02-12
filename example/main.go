@@ -32,6 +32,11 @@ func bsonify() {
 		"_id": map[string]interface{}{
 			"$oid": "123412341234123412341234",
 		},
+		"test": map[string]interface{}{
+			"subid": map[string]interface{}{
+				"$oid": "123412341234123412341234",
+			},
+		},
 	}
 	m, err := mejson.Bsonify(in)
 	if err != nil {

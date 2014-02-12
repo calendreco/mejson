@@ -6,10 +6,15 @@ import (
 )
 
 func Bsonify(in map[string]interface{}) (result bson.M, err error) {
+	if false {
+		fmt.Println("meow")
+	}
 	result = bson.M{}
 	for key, value := range in {
 		if oid, ok := Oid(value); ok {
 			result[key] = oid
+		} else if v, ok := value.(map[string]interface{}); ok {
+			result[key], err = Bsonify(v)
 		} else {
 			result[key] = value
 		}
