@@ -30,7 +30,7 @@ func marsh() {
 func bsonify() {
 	in := map[string]interface{}{
 		"_id": map[string]interface{}{
-			"$oid": "1234",
+			"$oid": "123412341234123412341234",
 		},
 	}
 	m, err := mejson.Bsonify(in)
