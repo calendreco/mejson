@@ -29,15 +29,29 @@ func Bsonify(in map[string]interface{}) (result bson.M, err error) {
 	return
 }
 
+func getOnly(m map[string]interface{}, s string) (interface{}, bool) {
+	value, ok := m[s]
+	if ok && len(m) == 1 {
+		return value, true
+	}
+	return nil, false
+}
+
+func Timestamp(in interface{}) (timestamp bson.MongoTimestamp, ok bool) {
+	switch in.(type) {
+	case map[string]interface{}:
+	}
+	return
+}
+
 func Date(in interface{}) (date time.Time, ok bool) {
-	ok = false
 	switch v := in.(type) {
 	case map[string]interface{}:
-		value, contains := v["$date"]
-		milli, isint := value.(int)
-		if isint && contains && len(v) == 1 {
-			ok = true
-			date = time.Unix(0, int64(milli)*int64(time.Millisecond))
+		if value, contains := getOnly(v, "$date"); contains {
+			if milli, isint := value.(int); isint {
+				ok = true
+				date = time.Unix(0, int64(milli)*int64(time.Millisecond))
+			}
 		}
 	}
 	return
@@ -45,7 +59,6 @@ func Date(in interface{}) (date time.Time, ok bool) {
 
 // ok if in == {"$oid": "#{ObjectId.Hex()}"}
 func Oid(in interface{}) (oid bson.ObjectId, ok bool) {
-	ok = false
 	switch v := in.(type) {
 	case map[string]interface{}:
 		value, contains := v["$oid"]
