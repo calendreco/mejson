@@ -40,6 +40,16 @@ func bsonify() {
 		"time": map[string]interface{}{
 			"$date": 1392227630711,
 		},
+		"timestamp": map[string]interface{}{
+			"$timestamp": map[string]interface{}{
+				"t": 18,
+				"i": 1,
+			},
+		},
+		"binary": map[string]interface{}{
+			"$binary": "b2ggaGk=",
+			"$type":   "00",
+		},
 	}
 	m, err := mejson.Bsonify(in)
 	if err != nil {
