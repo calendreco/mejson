@@ -1,7 +1,7 @@
 package mejson
 
 import (
-	"fmt"
+	// "fmt"
 	"labix.org/v2/mgo/bson"
 	"reflect"
 	"testing"
@@ -9,6 +9,9 @@ import (
 )
 
 func TestMarshal(t *testing.T) {
+
+	sample_time, _ := time.Parse(time.RFC3339, "2014-02-19T15:14:41.288Z")
+
 	data := []struct {
 		in      interface{}
 		want    []byte
@@ -20,9 +23,34 @@ func TestMarshal(t *testing.T) {
 			nil,
 		},
 		{
-			time.Now(),
+			sample_time,
+			[]byte("{\"$date\":1392822881288}"),
 			nil,
-			fmt.Errorf("unimplemented type time.Time"),
+		},
+		{
+			bson.Binary{Kind: 0x80, Data: []byte("52dc18556c528d7736000003")},
+			[]byte("{\"$binary\":\"NTJkYzE4NTU2YzUyOGQ3NzM2MDAwMDAz\",\"$type\":\"80\"}"),
+			nil,
+		},
+		{
+			"String",
+			[]byte("\"String\""),
+			nil,
+		},
+		{
+			true,
+			[]byte("true"),
+			nil,
+		},
+		{
+			5.1,
+			[]byte("5.1"),
+			nil,
+		},
+		{
+			nil,
+			[]byte("null"),
+			nil,
 		},
 	}
 
@@ -62,6 +90,92 @@ func TestMarshalObjectId(t *testing.T) {
 	}
 }
 
+func TestMarshalMap(t *testing.T) {
+	data := []struct {
+		in   bson.M
+		want []byte
+	}{
+		{
+			bson.M{"_id": bson.ObjectIdHex("52dc18556c528d7736000003")},
+			[]byte("{\"_id\":{\"$oid\":\"52dc18556c528d7736000003\"}}"),
+		},
+		{
+			bson.M{
+				"_id": bson.ObjectIdHex("52dc18556c528d7736000003"),
+				"s":   "String",
+			},
+			[]byte("{\"_id\":{\"$oid\":\"52dc18556c528d7736000003\"},\"s\":\"String\"}"),
+		},
+		{
+			bson.M{
+				"_id": bson.ObjectIdHex("52dc18556c528d7736000003"),
+				"s":   "String",
+				"m":   bson.M{"num": 5},
+			},
+			[]byte("{\"_id\":{\"$oid\":\"52dc18556c528d7736000003\"},\"m\":{\"num\":5},\"s\":\"String\"}"),
+		},
+		{
+			bson.M{
+				"_id": bson.ObjectIdHex("52dc18556c528d7736000003"),
+				"s":   "String",
+				"m": bson.M{
+					"num":      5,
+					"inner_id": bson.ObjectIdHex("52dc18556c528d7736000005"),
+				},
+			},
+			[]byte("{\"_id\":{\"$oid\":\"52dc18556c528d7736000003\"},\"m\":{\"inner_id\":{\"$oid\":\"52dc18556c528d7736000005\"},\"num\":5},\"s\":\"String\"}"),
+		},
+		{
+			bson.M{
+				"_id": bson.ObjectIdHex("52dc18556c528d7736000003"),
+				"s":   "String",
+				"a":   []int{1, 2, 3},
+			},
+			[]byte("{\"_id\":{\"$oid\":\"52dc18556c528d7736000003\"},\"a\":[1,2,3],\"s\":\"String\"}"),
+		},
+	}
+
+	for _, d := range data {
+		b, err := MarshalMap(d.in)
+		if err != nil {
+			t.FailNow()
+		}
+		if !reflect.DeepEqual(b, d.want) {
+			t.Errorf("wanted: %s, got: %s", d.want, b)
+		}
+	}
+}
+
+func TestMarshalSlice(t *testing.T) {
+	data := []struct {
+		in   []interface{}
+		want []byte
+	}{
+		{
+			[]interface{}{"one", "two", "three"},
+			[]byte("[\"one\",\"two\",\"three\"]"),
+		},
+		{
+			[]interface{}{bson.M{"_id": bson.ObjectIdHex("52dc18556c528d7736000003")}},
+			[]byte("[{\"_id\":{\"$oid\":\"52dc18556c528d7736000003\"}}]"),
+		},
+		{
+			[]interface{}{[]string{"one", "two"}, []string{"three", "four"}},
+			[]byte("[[\"one\",\"two\"],[\"three\",\"four\"]]"),
+		},
+	}
+
+	for _, d := range data {
+		b, err := MarshalSlice(d.in)
+		if err != nil {
+			t.FailNow()
+		}
+		if !reflect.DeepEqual(b, d.want) {
+			t.Errorf("wanted: %s, got: %s", d.want, b)
+		}
+	}
+}
+
 func TestMarshalBinary(t *testing.T) {
 	data := []struct {
 		in   bson.Binary
@@ -72,6 +186,29 @@ func TestMarshalBinary(t *testing.T) {
 
 	for _, d := range data {
 		b, err := MarshalBinary(d.in)
+		if err != nil {
+			t.FailNow()
+		}
+		if !reflect.DeepEqual(b, d.want) {
+			t.Errorf("wanted: %s, got: %s", d.want, b)
+		}
+	}
+}
+
+func TestMarshalTime(t *testing.T) {
+	sample_time, _ := time.Parse(time.RFC3339, "2014-02-19T15:14:41.288Z")
+	sample_time2, _ := time.Parse(time.RFC3339, "2007-02-19T15:14:41.288Z")
+
+	data := []struct {
+		in   time.Time
+		want []byte
+	}{
+		{sample_time, []byte("{\"$date\":1392822881288}")},
+		{sample_time2, []byte("{\"$date\":1171898081288}")},
+	}
+
+	for _, d := range data {
+		b, err := MarshalTime(d.in)
 		if err != nil {
 			t.FailNow()
 		}

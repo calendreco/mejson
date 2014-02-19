@@ -10,11 +10,17 @@ import (
 )
 
 func Marshal(in interface{}) ([]byte, error) {
+	// short circuit for nil
+	if in == nil {
+		return json.Marshal(in)
+	}
+
 	if reflect.TypeOf(in).Kind() == reflect.Slice {
 		v := reflect.ValueOf(in)
-		slice := []interface{}{}
+
+		slice := make([]interface{}, v.Len())
 		for i := 0; i < v.Len(); i++ {
-			slice = append(slice, v.Index(i).Interface())
+			slice[i] = v.Index(i).Interface()
 		}
 		return MarshalSlice(slice)
 	} else {
@@ -29,8 +35,8 @@ func Marshal(in interface{}) ([]byte, error) {
 		case bson.ObjectId:
 			return MarshalObjectId(v)
 		case time.Time:
-			return nil, fmt.Errorf("unimplemented type time.Time")
-		case string:
+			return MarshalTime(v)
+		case string, int, bool, float64:
 			return json.Marshal(v)
 		default:
 			fmt.Printf("unknown type: %T\n", v)
@@ -75,6 +81,13 @@ func MarshalBinary(in bson.Binary) ([]byte, error) {
 	result := map[string]string{
 		"$type":   fmt.Sprintf("%x", in.Kind),
 		"$binary": base64.StdEncoding.EncodeToString(in.Data),
+	}
+	return json.Marshal(result)
+}
+
+func MarshalTime(in time.Time) ([]byte, error) {
+	result := map[string]int{
+		"$date": int(in.UnixNano() / 1e6),
 	}
 	return json.Marshal(result)
 }
