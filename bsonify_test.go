@@ -1,6 +1,7 @@
 package mejson
 
 import (
+	"encoding/json"
 	"labix.org/v2/mgo/bson"
 	"reflect"
 	"testing"
@@ -120,6 +121,7 @@ func TestOid(t *testing.T) {
 func TestDate(t *testing.T) {
 	sample_time, _ := time.Parse(time.RFC3339, "2014-02-19T15:14:41.288Z")
 	sample_time2, _ := time.Parse(time.RFC3339, "2007-02-19T15:14:41.288Z")
+	sample_time3, _ := time.Parse(time.RFC3339, "2014-02-20T11:23:56Z")
 
 	data := []struct {
 		in     M
@@ -136,6 +138,11 @@ func TestDate(t *testing.T) {
 			sample_time2,
 			false,
 		},
+		{
+			map[string]interface{}{"$date": 1392895436000},
+			sample_time3,
+			true,
+		},
 	}
 
 	for _, d := range data {
@@ -144,7 +151,7 @@ func TestDate(t *testing.T) {
 			t.FailNow()
 		}
 		if ok && b.UnixNano() != d.want.UnixNano() {
-			t.Errorf("wanted: %v (%T), got: %v (%T)", d.want, d.want, b, b)
+			t.Errorf("wanted: %v (%d) (%T), got: %v (%d) (%T)", d.want, d.want.UnixNano()/1e6, d.want, b, b.UnixNano()/1e6, b)
 		}
 	}
 }
@@ -205,4 +212,37 @@ func TestBinary(t *testing.T) {
 			t.Errorf("wanted: %v (%T), got: %v (%T)", d.want, d.want, b, b)
 		}
 	}
+}
+
+func TestBsonify(t *testing.T) {
+	sample_time3 := time.Unix(0, int64(1392895436000)*int64(time.Millisecond)) //:= time.Parse(time.RFC3339, "2014-02-20T11:23:56Z")
+
+	data := []struct {
+		in   []byte
+		want bson.M
+	}{
+		{
+			[]byte("{\"name\":\"jp_with_date\",\"created_at\":{\"$date\":1392895436000}}"),
+			bson.M{"name": "jp_with_date", "created_at": sample_time3},
+		},
+	}
+
+	for _, d := range data {
+		v := make(map[string]interface{})
+
+		err := json.Unmarshal(d.in, &v)
+		if err != nil {
+			t.Errorf("%s", err)
+			t.FailNow()
+		}
+
+		b, err := Bsonify(v)
+		if err != nil {
+			t.FailNow()
+		}
+		if !reflect.DeepEqual(b, d.want) {
+			t.Errorf("wanted: %v (%T), got: %v (%T)", d.want, d.want, b, b)
+		}
+	}
+
 }

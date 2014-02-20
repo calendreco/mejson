@@ -43,6 +43,8 @@ func (m M) Bson() (result bson.M, err error) {
 					result[key] = timestamp
 				} else if binary, ok := M(v).Binary(); ok {
 					result[key] = binary
+				} else {
+					// we shouldn't get here!
 				}
 			}
 		default:
@@ -87,11 +89,24 @@ func (m M) Date() (date time.Time, ok bool) {
 		return
 	}
 
+	var millis int
 	if value, contains := m["$date"]; contains {
-		if milli, isint := value.(int); isint {
-			ok = true
-			date = time.Unix(0, int64(milli)*int64(time.Millisecond))
+		switch m := value.(type) {
+		case int:
+			millis = m
+		case int64:
+			millis = int(m)
+		case int32:
+			millis = int(m)
+		case float64:
+			millis = int(m)
+		case float32:
+			millis = int(m)
+		default:
+			return
 		}
+		ok = true
+		date = time.Unix(0, int64(millis)*int64(time.Millisecond))
 	}
 
 	return
