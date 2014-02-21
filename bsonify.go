@@ -44,7 +44,10 @@ func (m M) Bson() (result bson.M, err error) {
 				} else if binary, ok := M(v).Binary(); ok {
 					result[key] = binary
 				} else {
-					// we shouldn't get here!
+					result[key], err = M(v).Bson() // it's ugly to repeat this clause here
+					if err != nil {
+						return
+					}
 				}
 			}
 		default:

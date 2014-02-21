@@ -225,6 +225,10 @@ func TestBsonify(t *testing.T) {
 			[]byte("{\"name\":\"jp_with_date\",\"created_at\":{\"$date\":1392895436000}}"),
 			bson.M{"name": "jp_with_date", "created_at": sample_time3},
 		},
+		{
+			[]byte("{\"vancouver\":{\"$lt\":5}}"),
+			bson.M{"vancouver": bson.M{"$lt": float64(5)}},
+		},
 	}
 
 	for _, d := range data {
