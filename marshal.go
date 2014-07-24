@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"labix.org/v2/mgo/bson"
+	"os"
 	"reflect"
 	"time"
 )
@@ -36,10 +37,10 @@ func Marshal(in interface{}) ([]byte, error) {
 			return MarshalObjectId(v)
 		case time.Time:
 			return MarshalTime(v)
-		case string, int, bool, float64:
+		case string, int, int64, bool, float64:
 			return json.Marshal(v)
 		default:
-			fmt.Printf("unknown type: %T\n", v)
+			fmt.Fprintf(os.Stderr, "unknown type: %T\n", v)
 			return json.Marshal(v)
 		}
 	}
