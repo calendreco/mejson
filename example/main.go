@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/supershabam/mejson"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"github.com/MongoHQ/mejson"
+	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func marsh() {
