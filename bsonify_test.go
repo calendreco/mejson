@@ -2,10 +2,11 @@ package mejson
 
 import (
 	"encoding/json"
-	"gopkg.in/mgo.v2/bson"
 	"reflect"
 	"testing"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 func TestBson(t *testing.T) {
@@ -140,6 +141,16 @@ func TestDate(t *testing.T) {
 		},
 		{
 			map[string]interface{}{"$date": 1392895436000},
+			sample_time3,
+			true,
+		},
+		{
+			map[string]interface{}{"$date": "2014-02-19T15:14:41.288Z"},
+			sample_time,
+			true,
+		},
+		{
+			map[string]interface{}{"$date": "2014-02-20T11:23:56Z"},
 			sample_time3,
 			true,
 		},
