@@ -3,8 +3,9 @@ package mejson
 import (
 	"encoding/base64"
 	"encoding/hex"
-	"gopkg.in/mgo.v2/bson"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 type M map[string]interface{}
@@ -93,6 +94,7 @@ func (m M) Date() (date time.Time, ok bool) {
 	}
 
 	var millis int
+	var err error
 	if value, contains := m["$date"]; contains {
 		switch m := value.(type) {
 		case int:
@@ -105,6 +107,10 @@ func (m M) Date() (date time.Time, ok bool) {
 			millis = int(m)
 		case float32:
 			millis = int(m)
+		case string:
+			date, err = time.Parse(time.RFC3339, m)
+			ok = (err == nil)
+			return
 		default:
 			return
 		}
