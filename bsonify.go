@@ -3,6 +3,7 @@ package mejson
 import (
 	"encoding/base64"
 	"encoding/hex"
+	"strconv"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -87,15 +88,19 @@ func (m M) Oid() (oid bson.ObjectId, ok bool) {
 	return
 }
 
+// RFC3339Nano with a numeric zone
+const ISO8601 = "2006-01-02T15:04:05.999999999-0700"
+
 /* $date type */
 func (m M) Date() (date time.Time, ok bool) {
 	if len(m) != 1 {
 		return
 	}
 
-	var millis int
-	var err error
 	if value, contains := m["$date"]; contains {
+		var millis int
+		var err error
+
 		switch m := value.(type) {
 		case int:
 			millis = m
@@ -107,15 +112,32 @@ func (m M) Date() (date time.Time, ok bool) {
 			millis = int(m)
 		case float32:
 			millis = int(m)
+		// The MongoDB JSON parser currently does not support loading
+		// ISO-8601 strings representing dates prior to the Unix epoch.
+		// When formatting pre-epoch dates and dates past what your
+		// system’s time_t type can hold, the following format is used:
+		// { "$date" : { "$numberLong" : "<dateAsMilliseconds>" } }
+		case map[string]interface{}:
+			if value, contains := m["$numberLong"]; contains {
+				millis, err = strconv.Atoi(value.(string))
+			} else {
+				return
+			}
+		// In Strict mode, <date> is an ISO-8601 date format with a
+		// mandatory time zone field following the template
+		// YYYY-MM-DDTHH:mm:ss.mmm<+/-Offset>.
 		case string:
-			date, err = time.Parse(time.RFC3339, m)
+			date, err = time.Parse(ISO8601, m)
 			ok = (err == nil)
 			return
 		default:
 			return
 		}
-		ok = true
-		date = time.Unix(0, int64(millis)*int64(time.Millisecond))
+		ok = (err == nil)
+		if ok {
+			date = time.Unix(0, int64(millis)*int64(time.Millisecond))
+		}
+		return
 	}
 
 	return
