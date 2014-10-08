@@ -123,6 +123,7 @@ func TestDate(t *testing.T) {
 	sample_time, _ := time.Parse(time.RFC3339, "2014-02-19T15:14:41.288Z")
 	sample_time2, _ := time.Parse(time.RFC3339, "2007-02-19T15:14:41.288Z")
 	sample_time3, _ := time.Parse(time.RFC3339, "2014-02-20T11:23:56Z")
+	sample_time4, _ := time.Parse(time.RFC3339, "3939-01-01T00:00:00Z")
 
 	data := []struct {
 		in     M
@@ -145,13 +146,18 @@ func TestDate(t *testing.T) {
 			true,
 		},
 		{
-			map[string]interface{}{"$date": "2014-02-19T15:14:41.288Z"},
+			map[string]interface{}{"$date": "2014-02-19T15:14:41.288-0000"},
 			sample_time,
 			true,
 		},
 		{
-			map[string]interface{}{"$date": "2014-02-20T11:23:56Z"},
+			map[string]interface{}{"$date": "2014-02-20T11:23:56-0000"},
 			sample_time3,
+			true,
+		},
+		{
+			map[string]interface{}{"$date": map[string]interface{}{"$numberLong": "62135596800000"}},
+			sample_time4,
 			true,
 		},
 	}
