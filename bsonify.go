@@ -19,41 +19,48 @@ func Bsonify(m map[string]interface{}) (result bson.M, err error) {
 	return M(m).Bson()
 }
 
-func (m M) Bson() (result bson.M, err error) {
-	result = bson.M{}
+func parseValue(in interface{}) (out interface{}, err error) {
+	switch v := in.(type) {
+	case []interface{}:
+		out, err = S(v).Bson()
+		if err != nil {
+			return
+		}
 
-	for key, value := range m {
-		switch v := value.(type) {
-		case []interface{}:
-			result[key], err = S(v).Bson()
+	case map[string]interface{}:
+		if !M(v).isExtended() {
+			out, err = M(v).Bson()
 			if err != nil {
 				return
 			}
-
-		case map[string]interface{}:
-			if !M(v).isExtended() {
-				result[key], err = M(v).Bson()
+		} else {
+			if oid, ok := M(v).Oid(); ok {
+				out = oid
+			} else if date, ok := M(v).Date(); ok {
+				out = date
+			} else if timestamp, ok := M(v).Timestamp(); ok {
+				out = timestamp
+			} else if binary, ok := M(v).Binary(); ok {
+				out = binary
+			} else {
+				out, err = M(v).Bson() // it's ugly to repeat this clause here
 				if err != nil {
 					return
 				}
-			} else {
-				if oid, ok := M(v).Oid(); ok {
-					result[key] = oid
-				} else if date, ok := M(v).Date(); ok {
-					result[key] = date
-				} else if timestamp, ok := M(v).Timestamp(); ok {
-					result[key] = timestamp
-				} else if binary, ok := M(v).Binary(); ok {
-					result[key] = binary
-				} else {
-					result[key], err = M(v).Bson() // it's ugly to repeat this clause here
-					if err != nil {
-						return
-					}
-				}
 			}
-		default:
-			result[key] = v
+		}
+	default:
+		out = v
+	}
+	return
+}
+
+func (m M) Bson() (result bson.M, err error) {
+	result = bson.M{}
+	for key, value := range m {
+		result[key], err = parseValue(value)
+		if err != nil {
+			return
 		}
 	}
 
@@ -237,22 +244,12 @@ func getBinaryData(m map[string]interface{}) (data []byte, ok bool) {
 }
 
 /* BSONify a slice of somethings */
-func (s S) Bson() (out S, err error) {
-	out = make(S, len(s))
-	for k, v := range s {
-		switch elem := v.(type) {
-		case []interface{}:
-			out[k], err = S(elem).Bson()
-			if err != nil {
-				return
-			}
-		case map[string]interface{}:
-			out[k], err = M(elem).Bson()
-			if err != nil {
-				return
-			}
-		default:
-			out[k] = elem
+func (s S) Bson() (result S, err error) {
+	result = make(S, len(s))
+	for key, value := range s {
+		result[key], err = parseValue(value)
+		if err != nil {
+			return
 		}
 	}
 	return
