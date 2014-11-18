@@ -119,6 +119,35 @@ func TestOid(t *testing.T) {
 	}
 }
 
+func TestSlice(t *testing.T) {
+	data := []struct {
+		in   S
+		want S
+	}{
+		{
+			[]interface{}{
+				map[string]interface{}{"$oid": "52dc18556c528d7736000003"},
+				map[string]interface{}{"$oid": "52dc18556c528d7736000003"},
+				map[string]interface{}{"$oid": "52dc18556c528d7736000003"},
+			},
+			S{
+				bson.ObjectIdHex("52dc18556c528d7736000003"),
+				bson.ObjectIdHex("52dc18556c528d7736000003"),
+				bson.ObjectIdHex("52dc18556c528d7736000003"),
+			},
+		},
+	}
+	for _, d := range data {
+		b, err := d.in.Bson()
+		if err != nil {
+			t.FailNow()
+		}
+		if !reflect.DeepEqual(b, d.want) {
+			t.Errorf("wanted: %v (%T), got: %v (%T)", d.want, d.want, b, b)
+		}
+	}
+}
+
 func TestDate(t *testing.T) {
 	sample_time, _ := time.Parse(time.RFC3339, "2014-02-19T15:14:41.288Z")
 	sample_time2, _ := time.Parse(time.RFC3339, "2007-02-19T15:14:41.288Z")
